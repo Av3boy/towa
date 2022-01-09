@@ -1,0 +1,148 @@
+﻿@page "/"
+
+@using TOWA.Pages.Popup
+
+<PageTitle>Index</PageTitle>
+
+<h1 style="text-align: center;">TOWA | <b>TODO</b> list for the shows you want to <b>WATCH</b></h1>
+
+<Add onAddClicked="@((args)=> Add(((string, string, int))args))" addPopupVisibility="@addPopupVisibility"/>
+<Delete onDeleteClicked="@((args)=> Remove((int)args))" deletePopupVisibility="@deletePopupVisibility" Name=@deleteName Id=@deleteId />
+
+<div class="row">
+
+    <button type="button" style="width: 150px; margin: 0 0 25px;" class="btn btn-primary" @onclick=@(()=> ShowPopup("add"))>Add new show</button>
+
+    <table class="table table-striped table-bordered" cellspacing="0">
+        <thead style="display:block;">
+          <tr style="display: inline-table; width: 100%;">
+            <th scope="col" style="width: 50px;" >#</th>
+            <th scope="col" style="min-width: 75%;">Show</th>
+            <th scope="col">Current Episode</th>
+          </tr>
+        </thead>
+
+        <tbody style="display:block; height: 600px; overflow: auto;">
+            @{ var i = 1; }
+            @foreach (Show show in shows)
+            {
+                <tr style="display: inline-table; width: 100%;">
+                    <th style="width: 50px;" scope="row">@i</th>
+
+                    <td style="min-width: 75%;">
+                        <a href=@show.Link style="vertical-align:middle">@show.Name</a>
+                    </td>
+
+                    <td style="display: grid; column-gap: 16px; grid-template-columns: repeat(4, auto);">
+
+                        <button type="button" class="btn btn-light" @onclick="() => Increment(show)">+</button>
+                        <p style="margin: auto">@show.Episode</p>
+
+                        <button type="button" class="btn btn-light" @onclick="() => Decrement(show)">-</button>
+                        <button type="button" class="btn btn-danger" @onclick=@(() => { deleteId = show.Id; deleteName = show.Name; ShowPopup("delete"); })>Trash</button>
+                    </td>
+
+                </tr>
+                i++;
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+
+    public class Show
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Link { get; set; }
+        public int Episode { get; set; }
+    }
+
+    private List<Show> shows = new List<Show>() { };
+
+    private string? deletePopupVisibility = "none";
+    private string? addPopupVisibility = "none";
+
+    public async Task Add((string, string, int) args)
+    {
+        addPopupVisibility = "none";
+
+        //int largest = shows.Max(item => item.Id) + 1;
+        shows.Add(new Show() { Id = 1, Name = args.Item1, Link = args.Item2, Episode = args.Item3 });
+    }
+
+    private string? deleteName;
+    private int deleteId;
+
+    private void Remove(int id)
+    {
+        deletePopupVisibility = "none";
+        //shows.Remove(shows.Where(show => show.Id == id).First());
+
+        shows.ForEach(show => Console.WriteLine($"{show.Id} {id}"));
+
+        Show show = shows.Where(show => show.Id == id).FirstOrDefault();
+        Console.WriteLine(show);
+        shows.Remove(show);
+
+        deleteName = "";
+        deleteId = 0;
+    }
+
+    private void Decrement(Show show) {
+        if (show.Episode <= 0)
+        {
+
+            show.Episode = 0;
+
+            deleteName = show.Name;
+            deleteId = show.Id;
+
+            ShowPopup("delete");
+        }
+        else
+        {
+            deletePopupVisibility = "none";
+            addPopupVisibility = "none";
+            show.Episode--;
+        }
+    }
+
+    private void Increment(Show show)
+    {
+        deletePopupVisibility = "none";
+        addPopupVisibility = "none";
+        show.Episode++;
+    }
+
+    private void ShowPopup(string popup)
+    {
+        switch (popup)
+        {
+            case "delete":
+                deletePopupVisibility = "block";
+                break;
+
+            case "add":
+                addPopupVisibility = "block";
+                break;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        for (int i = 0; i < 100; i++)
+        {
+            Show show = new Show()
+            {
+                Id = 1,
+                Name = "test",
+                Link = "test",
+                Episode = 1
+            };
+
+            shows.Add(show);
+        }
+    }
+}

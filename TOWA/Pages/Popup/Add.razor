@@ -1,0 +1,66 @@
+﻿<div style="display: @addPopupVisibility;" class="modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Add new show</h5>
+
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="ClosePopup">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <form>
+
+          <div class="form-group">
+            <label for="name" class="col-form-label">Show name:</label>
+            <input type="text" class="form-control" id="name" @bind="Name" required>
+            <div class="invalid-feedback">
+                Please provide a valid show name
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="link" class="col-form-label">Where to watch (link):</label>
+            <input type="text" class="form-control" id="link" @bind="Link" required>
+            <div class="invalid-feedback">
+                Please provide a valid show link
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="modal-footer">
+          
+        <button type="button" class="btn btn-primary" @onclick="AddClicked">Add show</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="ClosePopup">Cancel</button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+@code {
+
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Link { get; set; }
+    public int Episode { get; set; }
+
+    [Parameter]
+    public string addPopupVisibility { get; set; } = "none";
+
+    [Parameter]
+    public EventCallback onAddClicked { get; set; }
+
+    protected async Task AddClicked()
+    {
+        if (!string.IsNullOrWhiteSpace(Name))
+            await onAddClicked.InvokeAsync((Name, Link, 1));
+    }
+
+    private void ClosePopup() =>
+        addPopupVisibility = "none";
+}
