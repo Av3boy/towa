@@ -2,6 +2,9 @@
 
 @using TOWA.Pages.Popup
 
+@using Blazored.LocalStorage
+@inject Blazored.LocalStorage.ILocalStorageService localStore
+
 <PageTitle>Index</PageTitle>
 
 <h1 style="text-align: center;">TOWA | <b>TODO</b> list for the shows you want to <b>WATCH</b></h1>
@@ -22,7 +25,7 @@
           </tr>
         </thead>
 
-        <tbody style="display:block; height: 600px; overflow: auto;">
+        <tbody style="display:block; height: 500px; overflow: auto;">
             @{ var i = 1; }
             @foreach (Show show in shows)
             {
@@ -68,14 +71,16 @@
     {
         addPopupVisibility = "none";
 
-        //int largest = shows.Max(item => item.Id) + 1;
-        shows.Add(new Show() { Id = 1, Name = args.Item1, Link = args.Item2, Episode = args.Item3 });
+        int largest = shows.Max(item => item.Id) + 1;
+        shows.Add(new Show() { Id = largest, Name = args.Item1, Link = args.Item2, Episode = args.Item3 });
+
+        await localStore.SetItemAsync<List<Show>>("shows", shows);
     }
 
     private string? deleteName;
     private int deleteId;
 
-    private void Remove(int id)
+    private async void Remove(int id)
     {
         deletePopupVisibility = "none";
         //shows.Remove(shows.Where(show => show.Id == id).First());
@@ -83,8 +88,9 @@
         shows.ForEach(show => Console.WriteLine($"{show.Id} {id}"));
 
         Show show = shows.Where(show => show.Id == id).FirstOrDefault();
-        Console.WriteLine(show);
         shows.Remove(show);
+
+        await localStore.SetItemAsync<List<Show>>("shows", shows);
 
         deleteName = "";
         deleteId = 0;
@@ -132,17 +138,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        for (int i = 0; i < 100; i++)
-        {
-            Show show = new Show()
-            {
-                Id = 1,
-                Name = "test",
-                Link = "test",
-                Episode = 1
-            };
 
-            shows.Add(show);
-        }
+        List<Show> localShows = await localStore.GetItemAsync<List<Show>>("shows") ?? new List<Show>();
+
+        shows = localShows;
     }
 }
